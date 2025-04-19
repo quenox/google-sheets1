@@ -21,10 +21,19 @@
     document.getElementById("miFormulario").addEventListener("submit", function(e) {
       e.preventDefault();
       const form = e.target;
-      const datos = {
-        Nombre: form.nombre.value,
-        Mensaje: form.mensaje.value
-      };
+      const nombre = encodeURIComponent(form.nombre.value);
+      const mensaje = encodeURIComponent(form.mensaje.value);
+    
+      const url = `${API_URL}?Nombre=${nombre}&Mensaje=${mensaje}`;
+    
+      fetch(url)
+        .then(() => {
+          alert("Enviado!");
+          form.reset();
+          cargarMensajes();
+        });
+    });
+
 
       fetch(API_URL, {
         method: "POST",
