@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Formulario con Google Sheets</title>
+</head>
+<body>
+  <h1>Formulario</h1>
+  <form id="miFormulario">
+    <input type="text" name="nombre" placeholder="Tu nombre" required>
+    <input type="text" name="mensaje" placeholder="Tu mensaje" required>
+    <button type="submit">Enviar</button>
+  </form>
+
+  <h2>Mensajes</h2>
+  <ul id="mensajes"></ul>
+
+  <script>
+    const API_URL = 'https://script.google.com/macros/s/AKfycbxF_OJX93jspuUSmTfElg9vFbz2p_t74GMtp-U_T8MMSdYdaLvwPqX7m345qlStA9iE/exec';
+
+    document.getElementById("miFormulario").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const form = e.target;
+      const datos = {
+        Nombre: form.nombre.value,
+        Mensaje: form.mensaje.value
+      };
+
+      fetch(API_URL, {
+        method: "POST",
+        body: JSON.stringify(datos),
+        headers: {
+          "Content-Type": "application/json"
+        }
+      }).then(() => {
+        alert("Enviado!");
+        form.reset();
+        cargarMensajes();
+      });
+    });
+
+    function cargarMensajes() {
+      fetch(API_URL)
+        .then(r => r.json())
+        .then(data => {
+          const lista = document.getElementById("mensajes");
+          lista.innerHTML = "";
+          data.forEach(item => {
+            const li = document.createElement("li");
+            li.textContent = `${item.Nombre}: ${item.Mensaje}`;
+            lista.appendChild(li);
+          });
+        });
+    }
+
+    cargarMensajes();
+  </script>
+</body>
+</html>
