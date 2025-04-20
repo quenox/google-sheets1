@@ -67,6 +67,7 @@
         
           const nombre  = nombreInput.value.trim();
           const mensaje = mensajeInput.value.trim();
+        
           if (!nombre || !mensaje) {
             statusElement.textContent = 'Por favor, completa ambos campos.';
             statusElement.style.color = 'orange';
@@ -76,20 +77,26 @@
           statusElement.textContent = 'Enviando datos…';
           statusElement.style.color = 'blue';
         
-          // Construimos el payload como URLSearchParams → Content-Type será
-          // automáticamente "application/x-www-form-urlencoded;charset=UTF-8"
           const payload = new URLSearchParams({ Nombre: nombre, Mensaje: mensaje });
-
-            const proxy = 'https://cors-anywhere.herokuapp.com/';
-
+        
+          const proxy = 'https://cors-anywhere.herokuapp.com/';
+        
           try {
             const response = await fetch(proxy + WEB_APP_URL, {
               method: 'POST',
               body: payload,
-              // mode: 'cors' es redundante, fetch usa 'cors' por defecto en cross‑origin
             });
         
-            const result = await response.json();
+            const text = await response.text();
+            let result;
+        
+            try {
+              result = JSON.parse(text); // intenta parsear JSON directamente
+            } catch {
+              // si falla, asumimos que viene en Base64 y decodificamos
+              const decoded = atob(text);
+              result = JSON.parse(decoded);
+            }
         
             if (response.ok && result.status === 'success') {
               statusElement.textContent = 'Datos enviados con éxito!';
@@ -106,6 +113,7 @@
             console.error('Fetch error:', error);
           }
         });
+
 
 
         // Función para cargar datos (leer)
