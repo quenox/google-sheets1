@@ -63,52 +63,48 @@
 
         // Función para enviar datos (escribir)
         writeForm.addEventListener('submit', async (event) => {
-            event.preventDefault(); // Previene el envío tradicional del formulario
-
-            const nombre = nombreInput.value;
-            const mensaje = mensajeInput.value;
-
-            if (!nombre || !mensaje) {
-                statusElement.textContent = 'Por favor, completa ambos campos.';
-                statusElement.style.color = 'orange';
-                return;
+          event.preventDefault();
+        
+          const nombre  = nombreInput.value.trim();
+          const mensaje = mensajeInput.value.trim();
+          if (!nombre || !mensaje) {
+            statusElement.textContent = 'Por favor, completa ambos campos.';
+            statusElement.style.color = 'orange';
+            return;
+          }
+        
+          statusElement.textContent = 'Enviando datos…';
+          statusElement.style.color = 'blue';
+        
+          // Construimos el payload como URLSearchParams → Content-Type será
+          // automáticamente "application/x-www-form-urlencoded;charset=UTF-8"
+          const payload = new URLSearchParams({ Nombre: nombre, Mensaje: mensaje });
+        
+          try {
+            const response = await fetch(WEB_APP_URL, {
+              method: 'POST',
+              body: payload,
+              // mode: 'cors' es redundante, fetch usa 'cors' por defecto en cross‑origin
+            });
+        
+            const result = await response.json();
+        
+            if (response.ok && result.status === 'success') {
+              statusElement.textContent = 'Datos enviados con éxito!';
+              statusElement.style.color = 'green';
+              nombreInput.value = '';
+              mensajeInput.value = '';
+            } else {
+              throw new Error(result.message || 'Respuesta inesperada');
             }
-
-            statusElement.textContent = 'Enviando datos...';
-            statusElement.style.color = 'blue';
-
-            try {
-                const response = await fetch(WEB_APP_URL, {
-                    method: 'POST',
-                    mode: 'cors', // Importante para peticiones desde un dominio diferente
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ Nombre: nombre, Mensaje: mensaje })
-                });
-
-                const result = await response.text(); // Tu script devuelve "OK" como texto
-
-                if (response.ok && result === "OK") {
-                    statusElement.textContent = 'Datos enviados con éxito!';
-                    statusElement.style.color = 'green';
-                    // Limpiar formulario
-                    nombreInput.value = '';
-                    mensajeInput.value = '';
-                    // Opcional: Recargar los datos después de escribir
-                    // loadData();
-                } else {
-                     statusElement.textContent = `Error al enviar datos: ${result}`;
-                    statusElement.style.color = 'red';
-                    console.error('Error response:', response);
-                }
-
-            } catch (error) {
-                statusElement.textContent = `Error de conexión: ${error}`;
-                statusElement.style.color = 'red';
-                console.error('Fetch error:', error);
-            }
+        
+          } catch (error) {
+            statusElement.textContent = `Error al enviar datos: ${error.message}`;
+            statusElement.style.color = 'red';
+            console.error('Fetch error:', error);
+          }
         });
+
 
         // Función para cargar datos (leer)
         async function loadData() {
