@@ -78,16 +78,12 @@
         
           // Construimos el payload como URLSearchParams → Content-Type será
           // automáticamente "application/x-www-form-urlencoded;charset=UTF-8"
-            //const payload = new URLSearchParams({ Nombre: nombre, Mensaje: mensaje });
-            const payload = JSON.stringify({ Nombre: nombre, Mensaje: mensaje });
+          const payload = new URLSearchParams({ Nombre: nombre, Mensaje: mensaje });
+            
           try {
             const response = await fetch(WEB_APP_URL, {
               method: 'POST',
               body: payload,
-                headers: {
-                    'Content-Type': 'application/json'
-                    // Puedes añadir otros headers si son necesarios, como 'Authorization', etc.
-                },
               // mode: 'cors' es redundante, fetch usa 'cors' por defecto en cross‑origin
             });
         
