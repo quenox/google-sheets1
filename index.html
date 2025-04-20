@@ -80,7 +80,7 @@
           // automáticamente "application/x-www-form-urlencoded;charset=UTF-8"
           const payload = new URLSearchParams({ Nombre: nombre, Mensaje: mensaje });
 
-          const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
+          const proxyUrl = 'https://thingproxy.freeboard.io/fetch/';
           try {
             const response = await fetch(proxyUrl + WEB_APP_URL, {
               method: 'POST',
