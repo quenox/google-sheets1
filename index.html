@@ -79,9 +79,11 @@
           // Construimos el payload como URLSearchParams → Content-Type será
           // automáticamente "application/x-www-form-urlencoded;charset=UTF-8"
           const payload = new URLSearchParams({ Nombre: nombre, Mensaje: mensaje });
-            
+
+            const proxy = 'https://cors-anywhere.herokuapp.com/';
+
           try {
-            const response = await fetch(WEB_APP_URL, {
+            const response = await fetch(proxy + WEB_APP_URL, {
               method: 'POST',
               body: payload,
               // mode: 'cors' es redundante, fetch usa 'cors' por defecto en cross‑origin
