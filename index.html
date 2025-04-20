@@ -1,168 +1,97 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactuar con Google Sheets</title>
-    <style>
-        body { font-family: sans-serif; line-height: 1.6; padding: 20px; }
-        .container { max-width: 600px; margin: 0 auto; }
-        h2 { margin-top: 20px; }
-        form div { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input[type="text"], textarea { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
-        button { display: inline-block; background-color: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; margin-right: 10px; }
-        button:hover { background-color: #45a049; }
-        #readButton { background-color: #008CBA; }
-        #readButton:hover { background-color: #0077a1; }
-        #response { margin-top: 20px; padding: 15px; background-color: #f9f9f9; border: 1px solid #ddd; border-radius: 4px; white-space: pre-wrap; word-wrap: break-word; }
-        .entry { margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px dashed #eee; }
-        .entry:last-child { border-bottom: none; }
-        .entry strong { display: inline-block; min-width: 80px; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Leer desde Google Sheets</title>
+  <style>
+    body { font-family: sans-serif; line-height: 1.6; padding: 20px; }
+    .container { max-width: 600px; margin: 0 auto; }
+    h1, h2 { margin-top: 20px; }
+    button {
+      background-color: #008CBA;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:hover { background-color: #0077a1; }
+    #readData {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #f9f9f9;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      white-space: pre-wrap;
+    }
+    .entry {
+      margin-bottom: 10px;
+      padding-bottom: 10px;
+      border-bottom: 1px dashed #eee;
+    }
+    .entry:last-child { border-bottom: none; }
+    .entry strong { display: inline-block; min-width: 80px; }
+  </style>
 </head>
 <body>
 
-    <div class="container">
-        <h1>Google Sheets Web App Interaction</h1>
-
-        <h2>Escribir en la Hoja</h2>
-        <form id="writeForm">
-            <div>
-                <label for="nombre">Nombre:</label>
-                <input type="text" id="nombre" required>
-            </div>
-            <div>
-                <label for="mensaje">Mensaje:</label>
-                <textarea id="mensaje" rows="4" required></textarea>
-            </div>
-            <div>
-                <button type="submit">Enviar a Sheets</button>
-            </div>
-        </form>
-
-        <h2>Leer de la Hoja</h2>
-        <button id="readButton">Cargar Datos</button>
-        <div id="readData">
-            <p>Pulsa "Cargar Datos" para ver el contenido de la hoja.</p>
-        </div>
-
-        <p id="status"></p>
+  <div class="container">
+    <h1>Google Sheets Viewer</h1>
+    <h2>Leer de la Hoja</h2>
+    <button id="readButton">Cargar Datos</button>
+    <div id="readData">
+      <p>Pulsa "Cargar Datos" para ver el contenido de la hoja.</p>
     </div>
+  </div>
 
-    <script>
-        // ** IMPORTANTE: Reemplaza esta URL con la URL de tu Aplicación Web desplegada **
-        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwGo1fP1UJ0mRF4iTeP9hNmd3qLJp9y79j3R4xbQU6XDyxs9JVAVyGwi-alLbZdF-FJ2Q/exec'; // <-- TU URL AQUI
+  <script>
+    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwGo1fP1UJ0mRF4iTeP9hNmd3qLJp9y79j3R4xbQU6XDyxs9JVAVyGwi-alLbZdF-FJ2Q/exec';
 
-        const writeForm = document.getElementById('writeForm');
-        const nombreInput = document.getElementById('nombre');
-        const mensajeInput = document.getElementById('mensaje');
-        const readButton = document.getElementById('readButton');
-        const readDataDiv = document.getElementById('readData');
-        const statusElement = document.getElementById('status');
+    const readButton = document.getElementById('readButton');
+    const readDataDiv = document.getElementById('readData');
 
-        // Función para enviar datos (escribir)
-        writeForm.addEventListener('submit', async (event) => {
-          event.preventDefault();
-        
-          const nombre  = nombreInput.value.trim();
-          const mensaje = mensajeInput.value.trim();
-        
-          if (!nombre || !mensaje) {
-            statusElement.textContent = 'Por favor, completa ambos campos.';
-            statusElement.style.color = 'orange';
-            return;
-          }
-        
-          statusElement.textContent = 'Enviando datos…';
-          statusElement.style.color = 'blue';
-        
-          const payload = new URLSearchParams({ Nombre: nombre, Mensaje: mensaje });
-        
-          const proxy = 'https://cors-anywhere.herokuapp.com/';
-        
-          try {
-            const response = await fetch(proxy + WEB_APP_URL, {
-              method: 'POST',
-              body: payload,
-            });
-        
-            const text = await response.text();
-            let result;
-        
-            try {
-              result = JSON.parse(text); // intenta parsear JSON directamente
-            } catch {
-              // si falla, asumimos que viene en Base64 y decodificamos
-              const decoded = atob(text);
-              result = JSON.parse(decoded);
-            }
-        
-            if (response.ok && result.status === 'success') {
-              statusElement.textContent = 'Datos enviados con éxito!';
-              statusElement.style.color = 'green';
-              nombreInput.value = '';
-              mensajeInput.value = '';
-            } else {
-              throw new Error(result.message || 'Respuesta inesperada');
-            }
-        
-          } catch (error) {
-            statusElement.textContent = `Error al enviar datos: ${error.message}`;
-            statusElement.style.color = 'red';
-            console.error('Fetch error:', error);
-          }
+    async function loadData() {
+      readDataDiv.innerHTML = '<p>Cargando datos...</p>';
+
+      try {
+        const response = await fetch(WEB_APP_URL, {
+          method: 'GET',
+          mode: 'cors'
         });
 
-
-
-        // Función para cargar datos (leer)
-        async function loadData() {
-            readDataDiv.innerHTML = '<p>Cargando datos...</p>'; // Mensaje de carga
-
-            try {
-                const response = await fetch(WEB_APP_URL, {
-                    method: 'GET',
-                    mode: 'cors' // Importante para peticiones desde un dominio diferente
-                });
-
-                if (!response.ok) {
-                     readDataDiv.innerHTML = `<p style="color: red;">Error al cargar datos: ${response.status} ${response.statusText}</p>`;
-                     console.error('Error response:', response);
-                     return;
-                }
-
-                const data = await response.json(); // Tu script devuelve JSON
-
-                readDataDiv.innerHTML = ''; // Limpiar contenido anterior
-
-                if (data.length === 0) {
-                    readDataDiv.innerHTML = '<p>No hay datos en la hoja aún.</p>';
-                } else {
-                    data.forEach(entry => {
-                        const entryElement = document.createElement('div');
-                        entryElement.classList.add('entry');
-                        entryElement.innerHTML = `
-                            <p><strong>Nombre:</strong> ${entry.Nombre || 'N/A'}</p>
-                            <p><strong>Mensaje:</strong> ${entry.Mensaje || 'N/A'}</p>
-                        `;
-                        readDataDiv.appendChild(entryElement);
-                    });
-                }
-
-            } catch (error) {
-                readDataDiv.innerHTML = `<p style="color: red;">Error de conexión al cargar datos: ${error}</p>`;
-                console.error('Fetch error:', error);
-            }
+        if (!response.ok) {
+          readDataDiv.innerHTML = `<p style="color: red;">Error al cargar datos: ${response.status} ${response.statusText}</p>`;
+          console.error('Error response:', response);
+          return;
         }
 
-        // Event listener para el botón de cargar datos
-        readButton.addEventListener('click', loadData);
+        const data = await response.json();
+        readDataDiv.innerHTML = '';
 
-        // Opcional: Cargar datos al iniciar la página
-        // loadData();
+        if (data.length === 0) {
+          readDataDiv.innerHTML = '<p>No hay datos en la hoja aún.</p>';
+        } else {
+          data.forEach(entry => {
+            const entryElement = document.createElement('div');
+            entryElement.classList.add('entry');
+            entryElement.innerHTML = `
+              <p><strong>Nombre:</strong> ${entry.Nombre || 'N/A'}</p>
+              <p><strong>Mensaje:</strong> ${entry.Mensaje || 'N/A'}</p>
+            `;
+            readDataDiv.appendChild(entryElement);
+          });
+        }
 
-    </script>
+      } catch (error) {
+        readDataDiv.innerHTML = `<p style="color: red;">Error de conexión al cargar datos: ${error}</p>`;
+        console.error('Fetch error:', error);
+      }
+    }
+
+    readButton.addEventListener('click', loadData);
+  </script>
 
 </body>
 </html>
